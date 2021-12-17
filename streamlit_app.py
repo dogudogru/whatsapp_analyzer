@@ -23,7 +23,14 @@ import random
 from collections import Counter
 from PIL import Image,ImageDraw,ImageFont
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide",page_title='Whatsapp Analyzer', page_icon=':green_book')
+
+#Menü gizleme
+st.markdown(""" <style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+</style> """, unsafe_allow_html=True)
+
 st.markdown(
     """
     <style>
@@ -381,7 +388,7 @@ if uploaded_file is not None:
             st.header('Kişiye Göre Mesaj Dağılımı')
             st.write('')   
     
-col1, col2, col3, col4, col5 = st.columns([1,5,.1,.1,7])
+col1, col2, col3, col4, col5 = st.columns([1,5,1,1,7])
 
 if uploaded_file is not None:
     with col1:
@@ -460,19 +467,19 @@ if uploaded_file is not None:
         auth = messages_df.groupby("Yazan").sum()
         auth.reset_index(inplace=True)
         auth = auth.sort_values(by="MessageCount", ascending=False)
-        # st.write(" ")
-        # st.write(" ")
-        # st.write(" ")
-        # st.write(" ")
-        # st.write(" ")
-        # st.image("images/medal_1.png")
-        # st.write(" ")
-        # st.write(" ")
+        st.write(" ")
+        st.write(" ")
+        st.write(" ")
+        st.write(" ")
+        st.write(" ")
+        st.image("images/medal_1.png")
+        st.write(" ")
+        st.write(" ")
  
-        # st.image("images/medal_2.png")
-        # st.write(" ")
-        # st.write(" ")
-        # st.image("images/medal_3.png")
+        st.image("images/medal_2.png")
+        st.write(" ")
+        st.write(" ")
+        st.image("images/medal_3.png")
 
     with col5:
         link_messages= df[df['Link Sayısı']>0]
