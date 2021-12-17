@@ -1,4 +1,4 @@
-<h1 align="center">Customer Recommendation Project</h1>
+<h1 align="center">Whatsapp Analyzer</h1>
 <h3 align=""left"">🛡️ Project Developers : </h3>
 <h3 align=""left"">🔭Doğukan Doğru</h3>
 <h3 align=""left"">🔭Mert Türkyılmaz</h3>
