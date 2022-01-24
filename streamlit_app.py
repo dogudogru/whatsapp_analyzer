@@ -23,7 +23,10 @@ import random
 from collections import Counter
 from PIL import Image,ImageDraw,ImageFont
 
+
 st.set_page_config(layout="wide",page_title='Whatsapp Analyzer', page_icon=':green_book')
+
+
 
 # #Menü gizleme
 # st.markdown(""" <style>
@@ -31,19 +34,19 @@ st.set_page_config(layout="wide",page_title='Whatsapp Analyzer', page_icon=':gre
 # footer {visibility: hidden;}
 # </style> """, unsafe_allow_html=True)
 
-st.markdown(
-    """
-    <style>
-    .reportview-container {
-        background: url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnhVrmQTYihPFpkrTplb0m4veDf8RQm5c13g&usqp=CAU")
-    }
-   .sidebar .sidebar-content {
-        background: url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnhVrmQTYihPFpkrTplb0m4veDf8RQm5c13g&usqp=CAU")
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# st.markdown(
+#     """
+#     <style>
+#     .reportview-container {
+#         background: url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnhVrmQTYihPFpkrTplb0m4veDf8RQm5c13g&usqp=CAU")
+#     }
+#    .sidebar .sidebar-content {
+#         background: url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnhVrmQTYihPFpkrTplb0m4veDf8RQm5c13g&usqp=CAU")
+#     }
+#     </style>
+#     """,
+#     unsafe_allow_html=True
+# )
 
 def startsWithDateAndTimeAndroid(s):
     pattern = '^([0-9]+)(\/)([0-9]+)(\/)([0-9]+), ([0-9]+):([0-9]+)[ ]?(AM|PM|am|pm)? -' 
@@ -289,7 +292,9 @@ if uploaded_file is not None:
         auth = messages_df.groupby('Yazan').agg({'MessageCount' : 'sum'}).sort_values(by="MessageCount",ascending=False).reset_index()
 
         st.subheader("Gruptaki Tipler")
+
         col1,col2,col3 = st.columns([1,1,1])
+
         with col1:
             st.markdown(f"**Mesaj Delisi : {auth.Yazan[0]}**")
             lst_gif1 = [gif1,gif2,gif3,gif4,gif5]
@@ -300,26 +305,24 @@ if uploaded_file is not None:
             yazan1_most = list(wordcloud1.words_.keys())
             img = Image.open("images/wp_not2.png")
             draw = ImageDraw.Draw(img)
-            #img.paste(watermark,(0,0))
-
-            font = ImageFont.truetype("fonts/BankGthd.ttf",size = 40)
-            baslık_font = ImageFont.truetype("fonts/helveticaneue.ttf",size = 30)
-            #line_dimensions = [draw.textsize(line,font=font) for line in mylist2]
-
-
+            font = ImageFont.truetype("fonts/TitilliumWeb-Regular.ttf",size = 40, encoding='utf-8')
+            baslık_font = ImageFont.truetype("fonts/Roboto-Regular.ttf",size = 30, encoding='utf-8')
             draw.text((20,70),auth.Yazan[0],font=baslık_font,fill=(150,50,150))
             draw.text((20,120),yazan1_most[0],font=baslık_font,fill=(0,0,0))
-
             width, height = img.size
-
             basewidth = 250
             wpercent = (basewidth/float(img.size[0]))
             hsize = int((float(img.size[1])*float(wpercent)))
             img2 = img.resize((basewidth,hsize), Image.ANTIALIAS)
             st.image(img2)
             auth = auth[auth.Yazan != auth.Yazan[0]]
+
+            df = df.dropna()  
+            auth2 = messages_df.groupby('Yazan').agg({'MessageCount' : 'sum','emojicount':'sum','Word_Count':'sum'}).sort_values(by="MessageCount",ascending=False).reset_index()
+            auth2 = auth2.MessageCount[0].astype(str)
+            st.metric("",auth2, delta='mesaj attı')
+
         with col2:
-            #if len(auth.Yazan.drop_duplicates()
             st.markdown(f"**Ajan Takipçi : {auth.Yazan[round(len(auth.Yazan)/2)]}**") 
             lst_gif2 = [gif6,gif7,gif8,gif9,gif10]
             st.image(random.choice(lst_gif2),width=300,caption="Grubun orta direğidir. Bir gözü chat'te, diğer gözü kendi işlerindedir. İdeal kullanıcıdır.")
@@ -329,26 +332,22 @@ if uploaded_file is not None:
             yazan2_most = list(wordcloud2.words_.keys())
             img = Image.open("images/wp_not2.png")
             draw = ImageDraw.Draw(img)
-            #img.paste(watermark,(0,0))
-
-            font = ImageFont.truetype("fonts/BankGthd.ttf",size = 40)
-            baslık_font = ImageFont.truetype("fonts/helveticaneue.ttf",size = 30)
-            #line_dimensions = [draw.textsize(line,font=font) for line in mylist2]
-
-
+            font = ImageFont.truetype("fonts/TitilliumWeb-Regular.ttf",size = 40, encoding='utf-8')
+            baslık_font = ImageFont.truetype("fonts/Roboto-Regular.ttf",size = 30, encoding='utf-8')
             draw.text((20,70),auth.Yazan[round(len(auth.Yazan)/2)],font=baslık_font,fill=(150,50,150))
             draw.text((20,120),yazan2_most[0],font=baslık_font,fill=(0,0,0))
-
             width, height = img.size
-
             basewidth = 250
             wpercent = (basewidth/float(img.size[0]))
             hsize = int((float(img.size[1])*float(wpercent)))
             img2 = img.resize((basewidth,hsize), Image.ANTIALIAS)
             st.image(img2)
-            auth = auth[auth.Yazan != auth.Yazan[round(len(auth.Yazan)/2)]]
+            df = df.dropna()  
+            auth3 = messages_df.groupby('Yazan').agg({'MessageCount' : 'sum','emojicount':'sum','Word_Count':'sum'}).sort_values(by="emojicount",ascending=False).reset_index()
+            auth3 = auth3.emojicount[round(len(auth.Yazan)/2)].astype(str)
+            st.metric("",auth3, delta='emoji kullandı',delta_color='off')
+
         with col3:
-            #if len(auth.Yazan.drop_duplicates() 
             st.markdown(f"**Cool Çocuk : {auth.Yazan.iloc[-1]}**") 
             lst_gif3 = [gif11,gif12,gif13,gif14,gif15]
             st.image(random.choice(lst_gif3),width=300,caption="Grubun en havalı elemanıdır. Az ama öz konuşur. Genelde en sevdiği renk siyahtır.")
@@ -356,162 +355,96 @@ if uploaded_file is not None:
             text3 = " ".join(review for review in yazan3.Mesaj)
             wordcloud3 = WordCloud(stopwords=stopwords, background_color="white",width=800, height=400).generate(text3)
             yazan3_most = list(wordcloud3.words_.keys())
-
             img = Image.open("images/wp_not2.png")
             draw = ImageDraw.Draw(img)
-            #img.paste(watermark,(0,0))
-
-            font = ImageFont.truetype("fonts/BankGthd.ttf",size = 40)
-            baslık_font = ImageFont.truetype("fonts/helveticaneue.ttf",size = 30)
-            #line_dimensions = [draw.textsize(line,font=font) for line in mylist2]
-
-
+            font = ImageFont.truetype("fonts/TitilliumWeb-Regular.ttf",size = 40, encoding='utf-8')
+            baslık_font = ImageFont.truetype("fonts/Roboto-Regular.ttf",size = 30, encoding='utf-8')
             draw.text((20,70),auth.Yazan.iloc[-1],font=baslık_font,fill=(150,50,150))
             draw.text((20,120),yazan3_most[0],font=baslık_font,fill=(0,0,0))
-
             width, height = img.size
-
             basewidth = 250
             wpercent = (basewidth/float(img.size[0]))
             hsize = int((float(img.size[1])*float(wpercent)))
             img2 = img.resize((basewidth,hsize), Image.ANTIALIAS)
             st.image(img2)
+            df = df.dropna()  
+            auth4 = messages_df.groupby('Yazan').agg({'MessageCount' : 'sum','emojicount':'sum','Word_Count':'sum'}).sort_values(by="Word_Count",ascending=False).reset_index()
+            auth4 = auth4.Word_Count.iloc[-1].astype(str)
+            st.metric("",auth4, delta='kelime harcadı',delta_color='inverse')
     else:
         pass 
         
-    col1, col2, col3, col4, col5,col6,col7,col8,col9,col10,col11,col12 = st.columns([10,1,1,1,1,1,1,1,10,1,1,1])
-    if uploaded_file is not None:
-        with col1:
-            st.header('Dikkat Çekenler')
-            st.write('')
-        with col9:
-            st.header('Kişiye Göre Mesaj Dağılımı')
-            st.write('')   
-    
-col1, col2, col3, col4, col5 = st.columns([1,5,1,1,7])
 
-if uploaded_file is not None:
+
+
+
+    link_messages= df[df['Link Sayısı']>0]
+    deleted_messages=df[(df["Mesaj"] == " You deleted this message")| (df["Mesaj"] == " This message was deleted.")|
+                        (df["Mesaj"] == " You deleted this message.")| (df["Mesaj"] == " Bu mesaj silindi")| (df["Mesaj"] == " Bu mesaj silindi.")]
+    media_messages_df = df[(df['Mesaj'] == ' <Media omitted>')|(df['Mesaj'] == ' image omitted')|
+                            (df['Mesaj'] == ' video omitted')|(df['Mesaj'] == ' sticker omitted')]
+    messages_df = df.drop(media_messages_df.index)
+    messages_df = messages_df.drop(deleted_messages.index)
+    messages_df = messages_df.drop(link_messages.index)
+
+    messages_df['Letter_Count'] = messages_df['Mesaj'].apply(lambda s : len(s))
+    messages_df['Word_Count'] = messages_df['Mesaj'].apply(lambda s : len(s.split(' '))-1)
+    messages_df["MessageCount"]=1
+
+    messages_df["emojicount"]= df['Emoji'].str.len()
+
+    l = messages_df.Yazan.unique()
+
+    auth = messages_df.groupby("Yazan").sum()
+    auth.reset_index(inplace=True)
+    auth = auth.sort_values(by="MessageCount", ascending=False)
+    link_messages= df[df['Link Sayısı']>0]
+    deleted_messages=df[(df["Mesaj"] == " You deleted this message")| (df["Mesaj"] == " This message was deleted.")|
+                        (df["Mesaj"] == " You deleted this message.")]
+    media_messages_df = df[(df['Mesaj'] == ' <Media omitted>')|(df['Mesaj'] == ' image omitted')|
+                            (df['Mesaj'] == ' video omitted')|(df['Mesaj'] == ' sticker omitted')]
+    messages_df = df.drop(media_messages_df.index)
+    messages_df = messages_df.drop(deleted_messages.index)
+    messages_df = messages_df.drop(link_messages.index)
+
+    messages_df['Letter_Count'] = messages_df['Mesaj'].apply(lambda s : len(s))
+    messages_df['Word_Count'] = messages_df['Mesaj'].apply(lambda s : len(s.split(' '))-1)
+    messages_df["MessageCount"]=1
+
+    messages_df["emojicount"]= df['Emoji'].str.len()
+
+    l = messages_df.Yazan.unique()
+
+    auth = messages_df.groupby("Yazan").sum()
+    auth.reset_index(inplace=True)
+    auth = auth.sort_values(by="MessageCount", ascending=False)
+
+    col1, col2, col3 = st.columns([4,1,4])
+
     with col1:
-        df = df.dropna()  
-        total_messages = df.shape[0]
-        st.write('')
-        st.write('')
-        st.image("images/notification.png", width=75)
-        st.image("images/image.png", width=75)
-        st.image("images/emoji.png", width=75)
-        st.image("images/link.png", width=75)
-    with col2:
-        st.write(" ")
-        st.write(" ")
-        st.write('')
-        st.write('')
-        st.markdown(
-              f"Konuşmada atılan toplam mesaj sayısı :  **{total_messages}** "
-          )
-        media_messages = df.img.sum()
-        st.write(" ")
-        st.write(" ")
-        st.write('')
- 
-
-   
-        st.markdown(
-              f"Konuşmaya atılan toplam görsel sayısı : **{media_messages}**"
-          )
-        
-        emojis = sum(df['Emoji'].str.len())
-        st.write(" ")
-        st.write(" ")
-        st.write(" ")
-        
-    
-    
-        st.markdown(
-              f"Konuşmada kullanılan toplam emoji sayısı : **{emojis}**"
-          )
-      
-        st.write(" ")
-        st.write(" ")
-        st.write(" ")
-    
-    
-
-        URLPATTERN = r'(https?://\S+)'
-        df['Link Sayısı'] = df.Mesaj.apply(lambda x: re.findall(URLPATTERN, x)).str.len()
-
-        links = np.sum(df["Link Sayısı"])
-        st.markdown(
-              f"Konuşmada paylaşılan toplam link sayısı : **{links}**"
-          )
-
-    st.write('')
-
-    with col4:
-        link_messages= df[df['Link Sayısı']>0]
-        deleted_messages=df[(df["Mesaj"] == " You deleted this message")| (df["Mesaj"] == " This message was deleted.")|
-                            (df["Mesaj"] == " You deleted this message.")]
-        media_messages_df = df[(df['Mesaj'] == ' <Media omitted>')|(df['Mesaj'] == ' image omitted')|
-                               (df['Mesaj'] == ' video omitted')|(df['Mesaj'] == ' sticker omitted')]
-        messages_df = df.drop(media_messages_df.index)
-        messages_df = messages_df.drop(deleted_messages.index)
-        messages_df = messages_df.drop(link_messages.index)
-
-        messages_df['Letter_Count'] = messages_df['Mesaj'].apply(lambda s : len(s))
-        messages_df['Word_Count'] = messages_df['Mesaj'].apply(lambda s : len(s.split(' '))-1)
-        messages_df["MessageCount"]=1
-
-        messages_df["emojicount"]= df['Emoji'].str.len()
-
-        l = messages_df.Yazan.unique()
-
-        auth = messages_df.groupby("Yazan").sum()
-        auth.reset_index(inplace=True)
-        auth = auth.sort_values(by="MessageCount", ascending=False)
-        st.write(" ")
-        st.write(" ")
-        st.write(" ")
-        st.write(" ")
-        st.write(" ")
-        st.image("images/medal_1.png")
-        st.write(" ")
-        st.write(" ")
- 
-        st.image("images/medal_2.png")
-        st.write(" ")
-        st.write(" ")
-        st.image("images/medal_3.png")
-
-    with col5:
-        link_messages= df[df['Link Sayısı']>0]
-        deleted_messages=df[(df["Mesaj"] == " You deleted this message")| (df["Mesaj"] == " This message was deleted.")|
-                            (df["Mesaj"] == " You deleted this message.")]
-        media_messages_df = df[(df['Mesaj'] == ' <Media omitted>')|(df['Mesaj'] == ' image omitted')|
-                               (df['Mesaj'] == ' video omitted')|(df['Mesaj'] == ' sticker omitted')]
-        messages_df = df.drop(media_messages_df.index)
-        messages_df = messages_df.drop(deleted_messages.index)
-        messages_df = messages_df.drop(link_messages.index)
-
-        messages_df['Letter_Count'] = messages_df['Mesaj'].apply(lambda s : len(s))
-        messages_df['Word_Count'] = messages_df['Mesaj'].apply(lambda s : len(s.split(' '))-1)
-        messages_df["MessageCount"]=1
-
-        messages_df["emojicount"]= df['Emoji'].str.len()
-
-        l = messages_df.Yazan.unique()
-
-        auth = messages_df.groupby("Yazan").sum()
-        auth.reset_index(inplace=True)
-        auth = auth.sort_values(by="MessageCount", ascending=False)
-        
+        st.header('Mesaj Atanlar')
         fig = px.bar(auth, y="Yazan", x="MessageCount", color='Yazan', orientation="h",
-                  color_discrete_sequence=px.colors.sequential.Agsunset,
-                  
-                  )
+                    color_discrete_sequence=px.colors.sequential.Rainbow,
+                    
+                    )
         fig.update_layout(xaxis_title='Mesaj Sayısı',
-                        yaxis_title='Yazan',paper_bgcolor='rgba(0,0,0,0)',
+                        yaxis_title='',paper_bgcolor='rgba(0,0,0,0)',
                         plot_bgcolor='rgba(0,0,0,0)')
 
-        st.plotly_chart(fig)
+        st.plotly_chart(fig, use_container_width=True)
+        
+    with col3:
+        st.header('Emoji Kullanımı')
+        auth = auth.sort_values(by="emojicount", ascending=False)
+        fig = px.bar(auth, y="Yazan", x="emojicount", color='Yazan', orientation="h",
+            color_discrete_sequence=px.colors.sequential.Turbo,
+            
+            )
+        fig.update_layout(xaxis_title='Kullanılan Emoji Sayısı',
+                        yaxis_title='',paper_bgcolor='rgba(0,0,0,0)',
+                        plot_bgcolor='rgba(0,0,0,0)')
+        st.plotly_chart(fig, use_container_width=True)
+
     st.markdown("""---""")
     user_list = ["Tüm Grup"]
     for x in df["Yazan"].drop_duplicates().tolist():
@@ -522,13 +455,13 @@ if uploaded_file is not None:
 
     text = " ".join(review for review in messages_df.Mesaj)
     if option == "Tüm Grup":
-      #wordcloud
+        mask = np.array(Image.open('images\whatsapp-logo.jpg'))  
+        wordcloud = WordCloud(stopwords=STOPWORDS,
+               mask=mask, background_color="white",
+               max_words=2000, max_font_size=256,
+               random_state=42, width=mask.shape[1],
+               height=mask.shape[0]).generate(text)
 
-        
-      # Generate a word cloud image
-        wordcloud = WordCloud(stopwords=stopwords, background_color="white",width=800, height=400).generate(text)
-      # Display the generated image:
-      # the matplotlib way:
 
         fig = plt.figure(figsize=(10,5))
         plt.imshow(wordcloud, interpolation='bilinear')
@@ -541,6 +474,8 @@ if uploaded_file is not None:
         st.write("")
         st.caption("Etiket bulutu veya kelime bulutu, bir metin içinde yer alan kelimelerin bir bulut olarak görselleştirilmesiyle elde edilen görüntüdür. Sunum ve tanıtım görselleri için sıkıcı yazıları eğlenceli hale dönüştürmeye çalışır. Burada, grup ya da kişi özelinde en çok kullanılan kelimeleri görüyorsunuz. Kelimenin boyutu ne kadar büyükse kullanım sıklığı da o kadar fazladır. ")
         st.markdown("""---""")
+
+
     else:
         dummy_df = messages_df[messages_df['Yazan'] == option]
         text = " ".join(review for review in dummy_df.Mesaj)
@@ -574,7 +509,7 @@ if uploaded_file is not None:
         fig.update_traces(textposition='inside', textinfo='percent+label')
         fig.update_layout(title={'font': {'size': 30}, 'text': f'<b>{option} İçin Emoji Dağılımı</b>'},paper_bgcolor='rgba(0,0,0,0)',
                         plot_bgcolor='rgba(0,0,0,0)')
-        st.plotly_chart(fig)
+        st.plotly_chart(fig, use_container_width=True)
         st.write("")
         st.caption('Yazışırken en çok hangi emojilerin kullanıldığını gösterir. Sağ tarafta yer alan emojilere tıkladığınızda, tıkladığınız emojinin grafikten kaldırıldığını göreceksiniz. Aynı emojiye tekrar tıklayarak grafiğinize ekleyebilirsiniz.')
         st.write("")
@@ -603,7 +538,7 @@ if uploaded_file is not None:
                         plot_bgcolor='rgba(0,0,0,0)'
       )
         st.write("")
-        st.plotly_chart(fig)
+        st.plotly_chart(fig, use_container_width=True)
         
         st.caption('Whatsapp konuşmanızı günler özelinde kıyaslamanıza yardımcı olur. Grafik üstünde dilediğiniz günü ve saati seçerek detaylı kıyaslama yapabilirsiniz. Grafiğe iki kere tıkladığınızda normal haline geri dönecektir.')
         st.write("")
@@ -642,11 +577,17 @@ else:
     st.markdown("""<b>Android için:</b> Bizim için gerekli olan dosya '.txt' uzantılı metin dosyasıdır. Birden fazla dosyanın dışa aktarılması durumunda kalanları görmezden gelebilirsiniz.""", unsafe_allow_html=True)
     st.markdown("""<b>IPhone için:</b> Konuşma metniniz .zip dosyası olarak dışa aktarılacaktır. Metin dosyasına (.txt) ulaşabilmek için sıkıştırılmış dosyayı açmanız gerekir.""", unsafe_allow_html=True)
     st.markdown("")
-    row5_1, row5_space, row5_2, row5_space2, row5_3 = st.columns((1,2,1,2,1))
+    row5_1, row5_space, row5_2, row5_space2, row5_3 = st.columns((1,1,1,1,1))
+    with row5_1:
+        st.write('')
     with row5_space:
-        st.image("images/chat-export-android.gif", caption="Android 9, WhatsApp 2.20.123")
+        st.image("images/chat-export-android.gif", caption="Android 9, WhatsApp 2.20.123", use_column_width=True)
+    with row5_2:
+        st.write('')
     with row5_space2: 
-        st.image("images/chat-export-ios.gif", caption="iOS 12, WhatsApp 2.20.31")
+        st.image("images/chat-export-ios.gif", caption="iOS 12, WhatsApp 2.20.31", use_column_width=True)
+    with row5_3:
+        st.write('')
 
     st.markdown("---")
 
