@@ -455,7 +455,7 @@ if uploaded_file is not None:
 
     text = " ".join(review for review in messages_df.Mesaj)
     if option == "Tüm Grup":
-        mask = np.array(Image.open('images\whatsapp.jpg'))  
+        mask = np.array(Image.open('whatsapp_analyzer\images\whatsapp.jpg'))  
         wordcloud = WordCloud(stopwords=STOPWORDS,
                mask=mask, background_color="white",
                max_words=2000, max_font_size=256,
