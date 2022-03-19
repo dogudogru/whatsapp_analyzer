@@ -15,15 +15,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from os import path
 from PIL import Image
-from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
+from wordcloud import WordCloud, STOPWORDS
 from io import StringIO
 from pathlib import Path
 import io
 import random
 from collections import Counter
 from PIL import Image,ImageDraw,ImageFont
-
-
+from utils.util import startsWithDateAndTimeAndroid, startsWithDateAndTimeios, FindAuthor, getDataPointAndroid, getDataPointios, dateconv, split_count
+from utils.cons import stopwords
 st.set_page_config(layout="wide",page_title='Whatsapp Analyzer', page_icon=':green_book')
 
 
@@ -48,92 +48,6 @@ st.set_page_config(layout="wide",page_title='Whatsapp Analyzer', page_icon=':gre
 #     unsafe_allow_html=True
 # )
 
-def startsWithDateAndTimeAndroid(s):
-    pattern = '^([0-9]+)(\/)([0-9]+)(\/)([0-9]+), ([0-9]+):([0-9]+)[ ]?(AM|PM|am|pm)? -' 
-    result = re.match(pattern, s)
-    if result:
-        return True
-    return False
-
-def startsWithDateAndTimeios(s):
-    pattern = '^\[([0-9]+)([\/-/.])([0-9]+)([\/-/.])([0-9]+)[,]? ([0-9]+):([0-9][0-9]):([0-9][0-9])?[ ]?(AM|PM|am|pm)?\]' 
-    result = re.match(pattern, s)
-    if result:
-        return True
-    return False
-
-def FindAuthor(s):
-  s=s.split(":")
-  if len(s)==2:
-    return True
-  else:
-    return False
-
-def getDataPointAndroid(line):   
-    splitLine = line.split(' - ') 
-    dateTime = splitLine[0]
-    date, time = dateTime.split(', ') 
-    message = ' '.join(splitLine[1:])
-    if FindAuthor(message): 
-        splitMessage = message.split(':') 
-        author = splitMessage[0] 
-        message = ' '.join(splitMessage[1:])
-    else:
-        author = None
-    return date, time, author, message
-
-def getDataPointios(line):
-    splitLine = line.split('] ')
-    dateTime = splitLine[0]
-    if ',' in dateTime:
-        date, time = dateTime.split(',')
-    else:
-        date, time = dateTime.split(' ')
-    message = ' '.join(splitLine[1:])
-    if FindAuthor(message):
-        splitMessage = message.split(':')
-        author = splitMessage[0]
-        message = ' '.join(splitMessage[1:])
-    else:
-        author = None
-    if time[5]==":":
-        time = time[:5]+time[-3:]
-    else:
-        if 'AM' in time or 'PM' in time:
-            time = time[:6]+time[-3:]
-        else:
-            time = time[:6]
-    return date, time, author, message
-
-
-def dateconv(date):
-    year=''
-    if '-' in date:
-        year = date.split('-')[2]
-        if len(year) == 4:
-            return datetime.datetime.strptime(date, "[%d-%m-%Y").strftime("%Y-%m-%d")
-        elif len(year) ==2:
-            return datetime.datetime.strptime(date, "[%d-%m-%y").strftime("%Y-%m-%d")
-    elif '/' in date:
-        year = date.split('/')[2]
-        if len(year) == 4:
-            return datetime.datetime.strptime(date, "[%d/%m/%Y").strftime("%Y-%m-%d")
-        if len(year) ==2:
-            return datetime.datetime.strptime(date, "[%d/%m/%y").strftime("%Y-%m-%d")
-    elif '.' in date:
-        year = date.split('.')[2]
-        if len(year) == 4:
-            return datetime.datetime.strptime(date, "[%d.%m.%Y").strftime("%Y-%m-%d")
-        if len(year) ==2:
-            return datetime.datetime.strptime(date, "[%d.%m.%y").strftime("%Y-%m-%d")
-
-def split_count(text):
-
-    text = emoji.demojize(text)
-    text = re.findall(r'(:[^:]*:)', text)
-    emoji_list = [emoji.emojize(x) for x in text]
-
-    return emoji_list
 
 col1, col2, col3, col4, col5,col6,col7,col8,col9,col10,col11,col12 = st.columns([1,1,1,1,1,1,1,1,1,1,1,1])
 
@@ -151,9 +65,7 @@ device=''
 st.title("Whatsapp Analyzer")
 uploaded_file = st.file_uploader("Whatsapp konuşma metnini yükleyiniz (Sürükleyip bırakabilirsiniz)", type=['.txt'])
 
-stopwords = set(STOPWORDS)
-stopwords.update(["kartma","son","Ya","size","o","mı","mi","cok","icin","ve","ama",	"amma",	"anca",	"ancak","bu","belki",	"çünkü","de","da","bi","dahi",	"eğer",	"emme",	"fakat",	"gah",	"gerek",	"hakeza",	"halbuki",	"hatta",	"hele",	"hem",	"hoş",	"ile",	"ile",	"imdi",	"ister",	"kah",	"keşke",	"keza",	"kezalik",	"kim",	"lakin",	"madem",	"mademki",	"mamafih",	"meğer",	"meğerki",	"meğerse",	"netekim",	"neyse",	"nitekim",	"oysa",	"oysaki",	"şayet",	"velev",	"velhasıl",	"velhasılıkelam",	"veya",	"veyahut",	"yahut",	"yalnız",	"yani",	"yok",	"yoksa",	"zira",	"acaba",	"acep",	"açıkça",	"açıkçası",	"adamakıllı",	"adeta",	"bazen",	"bazı",	"bilcümle",	"binaen",	"binaenaleyh",	"bir",	"biraz",	"birazdan",	"birden",	"birden",	"birdenbire",	"birice",	"birlikte",	"bitevi",	"biteviye",	"bittabi",	"bizatihi",	"bizce",	"bizcileyin",	"bizden",	"bizzat",	"boşuna",	"böyle",	"böylece",	"böylecene",	"böylelikle",	"böylemesine",	"böylesine",	"buracıkta",	"burada",	"buradan",	"büsbütün",	"çabuk",	"çabukça",	"çeşitli",	"çoğu",	"çoğun",	"çoğunca",	"çoğunlukla",	"çok",	"çokça",	"çokluk",	"çoklukla",	"cuk",	"daha",	"dahil",	"dahilen",	"daima",	"demin",	"demincek",	"deminden",	"derakap",	"derhal",	"derken",	"diye",	"elbet",	"elbette",	"enikonu",	"epey",	"epeyce",	"epeyi",	"esasen",	"esnasında",	"etraflı",	"etraflıca",	"evleviyetle",	"evvel",	"evvela",	"evvelce",	"evvelden",	"evvelemirde",	"evveli",	"gayet",	"gayetle",	"gayri",	"gayrı",	"geçende",	"geçenlerde",	"gene",	"gerçi",	"gibi",	"gibilerden",	"gibisinden",	"gine",	"halen",	"halihazırda",	"haliyle",	"handiyse",	"hani",	"hasılı",	"hulasaten",	"iken",	"illa",	"illaki",	"itibarıyla",	"iyice",	"iyicene",	"kala",	"kez",	"kısaca",	"külliyen",	"lütfen",	"nasıl",	"nasılsa",	"nazaran",	"neden",	"nedeniyle",	"nedense",	"nerde",	"nerden",	"nerdeyse",	"nerede",	"nereden",	"neredeyse",	"nereye",	"neye",	"neyi",	"nice",	"niçin",	"nihayet",	"nihayetinde",	"niye",	"oldu",	"oldukça",	"olur",	"onca",	"önce",	"önceden",	"önceleri",	"öncelikle",	"onculayın",	"ondan",	"oracık",	"oracıkta",	"orada",	"oradan",	"oranca",	"oranla",	"oraya",	"öyle",	"öylece",	"öylelikle",	"öylemesine",	"pek",	"pekala",	"pekçe",	"peki",	"peyderpey",	"sadece",	"sahi",	"sahiden",	"sanki",	"sonra",	"sonradan",	"sonraları",	"sonunda",	"şöyle",	"şuncacık",	"şuracıkta",	"tabii",	"tam",	"tamam",	"tamamen",	"tamamıyla",	"tek",	"vasıtasıyla",	"yakinen",	"yakında",	"yakından",	"yakınlarda",	"yalnız",	"yalnızca",	"yeniden",	"yenilerde",	"yine",	"yok",	"yoluyla",	"yüzünden",	"zaten",	"zati",	"ait",	"bari",	"beri",	"bile",	"değin",	"dek",	"denli",	"doğru",	"dolayı",	"dolayısıyla",	"gelgelelim",	"gibi",	"gırla",	"göre",	"hasebiyle",	"için",	"ila",	"ile",	"ilen",	"indinde",	"inen",	"kadar",	"kaffesi",	"karşın",	"kelli",	"Leh",	"maada",	"mebni",	"naşi",	"rağmen",	"üzere",	"zarfında",	"öbür",	"bana",	"başkası",	"ben",	"beriki",	"birbiri",	"birçoğu",	"biri",	"birileri",	"birisi",	"birkaçı",	"biz",	"bizimki",	"buna",	"bunda",	"bundan",	"bunlar",	"bunu",	"bunun",	"burası",	"çoğu",	"çoğu",	"çokları",	"çoklarınca",	"cümlesi",	"değil",	"diğeri",	"filanca",	"hangisi",	"hepsi",	"hiçbiri",	"iş",	"kaçı",	"kaynak",	"kendi",	"kim",	"kimi",	"kimisi",	"kimse",	"kimse",	"kimsecik",	"kimsecikler",	"nere",	"neresi",	"öbürkü",	"öbürü",	"ona",	"onda",	"ondan",	"onlar",	"onu",	"onun",	"öteki",	"ötekisi",	"öz",	"sana",	"sen",	"siz",	"şuna",	"şunda",	"şundan",	"şunlar",	"şunu",	"şunun",	"şura",	"şuracık",	"şurası","grnt","edilmedi"])
-
+all_stopwords = stopwords()
 
 if uploaded_file is not None:
     fp = io.TextIOWrapper(uploaded_file, encoding="utf-8")#open(file=str(uploaded_file.name,'r')) load_data(uploaded_file)
@@ -247,9 +159,6 @@ if uploaded_file is not None:
     #st.table(df_en_ck)
 
 
-
-
-
 #st.markdown(df.Yazan.unique())
 if uploaded_file is not None:
 # line1_spacer1, line1_1, line1_spacer2 = st.columns((.1, 3.2, .1))
@@ -301,14 +210,14 @@ if uploaded_file is not None:
             st.image(random.choice(lst_gif1),width=300, caption="Grubun en aktif üyesidir. Mesajlaşmayı çok sever. Sabahlara kadar durmadan yazar, yazar, yazar...")
             yazan1 = messages_df[messages_df['Yazan'] == auth.Yazan[0]]
             text1 = " ".join(review for review in yazan1.Mesaj)
-            wordcloud1 = WordCloud(stopwords=stopwords, background_color="white",width=800, height=400).generate(text1)
+            wordcloud1 = WordCloud(stopwords=all_stopwords, background_color="white",width=800, height=400).generate(text1)
             yazan1_most = list(wordcloud1.words_.keys())
             img = Image.open("images/wp_not2.png")
             draw = ImageDraw.Draw(img)
             font = ImageFont.truetype("fonts/TitilliumWeb-Regular.ttf",size = 40, encoding='utf-8')
-            baslık_font = ImageFont.truetype("fonts/Roboto-Regular.ttf",size = 30, encoding='utf-8')
-            draw.text((20,70),auth.Yazan[0],font=baslık_font,fill=(150,50,150))
-            draw.text((20,120),yazan1_most[0],font=baslık_font,fill=(0,0,0))
+            baslik_font = ImageFont.truetype("fonts/Roboto-Regular.ttf",size = 30, encoding='utf-8')
+            draw.text((20,70),auth.Yazan[0],font=baslik_font,fill=(150,50,150))
+            draw.text((20,120),yazan1_most[0],font=baslik_font,fill=(0,0,0))
             width, height = img.size
             basewidth = 250
             wpercent = (basewidth/float(img.size[0]))
@@ -328,14 +237,14 @@ if uploaded_file is not None:
             st.image(random.choice(lst_gif2),width=300,caption="Grubun orta direğidir. Bir gözü chat'te, diğer gözü kendi işlerindedir. İdeal kullanıcıdır.")
             yazan2 = messages_df[messages_df['Yazan'] == auth.Yazan[round(len(auth.Yazan)/2)]]
             text2 = " ".join(review for review in yazan2.Mesaj)
-            wordcloud2 = WordCloud(stopwords=stopwords, background_color="white",width=800, height=400).generate(text2)
+            wordcloud2 = WordCloud(stopwords=all_stopwords, background_color="white",width=800, height=400).generate(text2)
             yazan2_most = list(wordcloud2.words_.keys())
             img = Image.open("images/wp_not2.png")
             draw = ImageDraw.Draw(img)
             font = ImageFont.truetype("fonts/TitilliumWeb-Regular.ttf",size = 40, encoding='utf-8')
-            baslık_font = ImageFont.truetype("fonts/Roboto-Regular.ttf",size = 30, encoding='utf-8')
-            draw.text((20,70),auth.Yazan[round(len(auth.Yazan)/2)],font=baslık_font,fill=(150,50,150))
-            draw.text((20,120),yazan2_most[0],font=baslık_font,fill=(0,0,0))
+            baslik_font = ImageFont.truetype("fonts/Roboto-Regular.ttf",size = 30, encoding='utf-8')
+            draw.text((20,70),auth.Yazan[round(len(auth.Yazan)/2)],font=baslik_font,fill=(150,50,150))
+            draw.text((20,120),yazan2_most[0],font=baslik_font,fill=(0,0,0))
             width, height = img.size
             basewidth = 250
             wpercent = (basewidth/float(img.size[0]))
@@ -353,14 +262,14 @@ if uploaded_file is not None:
             st.image(random.choice(lst_gif3),width=300,caption="Grubun en havalı elemanıdır. Az ama öz konuşur. Genelde en sevdiği renk siyahtır.")
             yazan3 = messages_df[messages_df['Yazan'] == auth.Yazan.iloc[-1]]
             text3 = " ".join(review for review in yazan3.Mesaj)
-            wordcloud3 = WordCloud(stopwords=stopwords, background_color="white",width=800, height=400).generate(text3)
+            wordcloud3 = WordCloud(stopwords=STOPWORDS, background_color="white",width=800, height=400).generate(text3)
             yazan3_most = list(wordcloud3.words_.keys())
             img = Image.open("images/wp_not2.png")
             draw = ImageDraw.Draw(img)
             font = ImageFont.truetype("fonts/TitilliumWeb-Regular.ttf",size = 40, encoding='utf-8')
-            baslık_font = ImageFont.truetype("fonts/Roboto-Regular.ttf",size = 30, encoding='utf-8')
-            draw.text((20,70),auth.Yazan.iloc[-1],font=baslık_font,fill=(150,50,150))
-            draw.text((20,120),yazan3_most[0],font=baslık_font,fill=(0,0,0))
+            baslik_font = ImageFont.truetype("fonts/Roboto-Regular.ttf",size = 30, encoding='utf-8')
+            draw.text((20,70),auth.Yazan.iloc[-1],font=baslik_font,fill=(150,50,150))
+            draw.text((20,120),yazan3_most[0],font=baslik_font,fill=(0,0,0))
             width, height = img.size
             basewidth = 250
             wpercent = (basewidth/float(img.size[0]))
@@ -455,15 +364,9 @@ if uploaded_file is not None:
 
     text = " ".join(review for review in messages_df.Mesaj)
     if option == "Tüm Grup":
-        mask = np.array(Image.open('whatsapp_analyzer\images\whatsapp.jpg'))  
-        wordcloud = WordCloud(stopwords=STOPWORDS,
-               mask=mask, background_color="white",
-               max_words=2000, max_font_size=256,
-               random_state=42, width=mask.shape[1],
-               height=mask.shape[0]).generate(text)
-
-
-        fig = plt.figure(figsize=(10,5))
+        #mask = np.array(Image.open('images\whatsapp.jpg'))  
+        wordcloud = WordCloud(stopwords=all_stopwords, background_color="white",width=800, height=350).generate(text)
+        fig = plt.figure(figsize=(10,4))
         plt.imshow(wordcloud, interpolation='bilinear')
         plt.axis("off")
         st.subheader("Grupta En Çok Kullanılan Kelimeler")
@@ -479,16 +382,16 @@ if uploaded_file is not None:
     else:
         dummy_df = messages_df[messages_df['Yazan'] == option]
         text = " ".join(review for review in dummy_df.Mesaj)
-          # Generate a word cloud image
+        # Generate a word cloud image
         st.subheader(f"{option} İçin En Çok Kullanılan Kelimeler")
-        wordcloud = WordCloud(stopwords=stopwords, background_color="white",width=800, height=400).generate(text)
-        fig = plt.figure( figsize=(10,5))
+        wordcloud = WordCloud(stopwords=all_stopwords, background_color="white",width=800, height=350).generate(text)
+        fig = plt.figure( figsize=(10,4))
         plt.imshow(wordcloud, interpolation='bilinear')
         plt.axis("off")
         st.pyplot(fig)
         st.markdown("""---""")
-          # Display the generated image:
-      # the matplotlib way:
+
+      
     col1, col2 = st.columns([1,1])
     if option != "Tüm Grup":
         messages_df = messages_df[messages_df["Yazan"] == option]
@@ -518,7 +421,7 @@ if uploaded_file is not None:
         
         def f(i):
             l = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"]
-            return l[i];
+            return l[i]
         day_df=pd.DataFrame(messages_df["Mesaj"])
         day_df['day_of_date'] = messages_df['Tarih'].dt.weekday
         day_df['day_of_date'] = day_df["day_of_date"].apply(f)
@@ -606,7 +509,7 @@ else:
 
     st.markdown("---")
 
-    st.markdown('Whatsapp Analyzer açık kaynak kodlu bir projedir. Proje kodu hakkında detaylı bilgi için <a href="www.github.com"> Github sayfasını </a> ziyaret edebilirsiniz.  ', unsafe_allow_html=True)
+    st.markdown('Whatsapp Analyzer açık kaynak kodlu bir projedir. Proje kodu hakkında detaylı bilgi için <a href="https://github.com/dogudogru/whatsapp_analyzer"> Github sayfasını </a> ziyaret edebilirsiniz.  ', unsafe_allow_html=True)
 
 
     st.markdown(" ")
