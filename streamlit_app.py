@@ -358,8 +358,9 @@ if uploaded_file is not None:
     user_list = ["Tüm Grup"]
     for x in df["Yazan"].drop_duplicates().tolist():
         user_list.append(x)
+    st.title("Kişiye Özel İstatistikler")
     option = st.selectbox(
-     'Kişiye Özel İstatistikler',
+     'İncelemek istediğiniz kişiyi bu kutucuktan işaretleyebilirsiniz',
      user_list)
 
     text = " ".join(review for review in messages_df.Mesaj)
@@ -456,7 +457,7 @@ else:
     st.markdown("""
     Uygulamayı aşağıdaki adımları takip ederek kolaylıkla çalıştırabilirsiniz:
 
-    1. Analiz etmek istediğiniz Whatsapp konuşmasına giderek konuşmayı dışarı aktarın
+    1. Analiz etmek istediğiniz Whatsapp konuşmasına giderek konuşmayı <b> medyayı dahil etmeden </b> dışarı aktarın
     2. Aktardığınız metin dosyasını (*Grup Adı*.**txt**) yukarıdaki gri alana tıklayarak açın (sürükleyip bırakabilirsiniz)
     3. Arkanıza yaslanın ve sizler için hazırladığımız detaylı analizin tadını çıkarın! :sparkles:
     
